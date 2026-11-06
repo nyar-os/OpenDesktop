@@ -31,4 +31,4 @@ pnpm run build
 
 ## License
 
-Mozilla Public License 2.0. See [License.md](./License.md).
+Apache License 2.0. See [License.md](./License.md).
