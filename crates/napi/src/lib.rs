@@ -5,7 +5,7 @@
 //! `open_desktop_core::capabilities()` only.
 
 use open_desktop_core::{CapabilityReason, PlatformError, capabilities, platform_tag};
-use wae::webview::{IpcHandler, OpenOptions, WebViewError, WebViewHost};
+use wae::webview::{Capability, IpcHandler, OpenOptions, Platform, WebViewError, WebViewHost};
 
 /// Native library name produced by this crate.
 pub const CDYLIB_NAME: &str = "open_desktop_napi";
@@ -47,9 +47,16 @@ fn ensure_gui() -> Result<(), PlatformError> {
 
 fn map_gui_error(error: WebViewError) -> PlatformError {
     match error {
-        WebViewError::Unsupported(detail) => PlatformError::Unavailable {
+        WebViewError::Unsupported { capability, platform } => PlatformError::Unavailable {
             capability: String::from(GUI_CAPABILITY),
-            reason: CapabilityReason::UnsupportedPlatform { platform: platform_tag(), detail: Some(detail.to_owned()) },
+            reason: CapabilityReason::UnsupportedPlatform {
+                platform: platform_tag(),
+                detail: Some(format!("upstream webview capability {capability:?} is unavailable on {platform:?}")),
+            },
+        },
+        WebViewError::Host(failure) => PlatformError::Failed {
+            capability: String::from(GUI_CAPABILITY),
+            message: format!("{} (stage {}): {}", failure.code, failure.stage, failure.message),
         },
         WebViewError::Message(message) => PlatformError::Failed { capability: String::from(GUI_CAPABILITY), message },
     }
@@ -61,10 +68,20 @@ mod tests {
 
     #[test]
     fn upstream_unsupported_maps_to_a_structured_platform_reason() {
-        let error = map_gui_error(WebViewError::Unsupported("no backend for this target"));
+        let error = map_gui_error(WebViewError::unsupported(Capability::Window, Platform::Windows));
 
         assert_eq!(error.capability(), GUI_CAPABILITY);
         assert_eq!(error.reason().map(CapabilityReason::code), Some("unsupported_platform"));
+    }
+
+    #[test]
+    fn upstream_host_failure_keeps_the_upstream_code_and_stage() {
+        let error = map_gui_error(WebViewError::host("webview2_navigation_failed", "navigate", "page did not load"));
+
+        assert_eq!(error.capability(), GUI_CAPABILITY);
+        assert!(error.reason().is_none());
+        assert!(format!("{error:?}").contains("webview2_navigation_failed"));
+        assert!(format!("{error:?}").contains("navigate"));
     }
 
     #[test]
