@@ -14,3 +14,4 @@ name = "open_desktop_napi"
 
 [dependencies]
 open-desktop-core = { workspace = true }
+wae = { workspace = true }

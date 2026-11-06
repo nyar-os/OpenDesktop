@@ -69,16 +69,9 @@ impl Capabilities {
     /// Tests and forward-looking hosts pass explicit tags instead of relying on the build target.
     #[must_use]
     pub fn for_platform(platform: &str) -> Self {
-        let windows = platform.starts_with("win32");
+        let gui = if supports_gui(platform) { Capability::available() } else { Capability::unavailable(unsupported_platform(platform)) };
 
-        let gui = if windows {
-            Capability::unavailable(not_implemented("webview2 gui host"))
-        }
-        else {
-            Capability::unavailable(unsupported_platform(platform))
-        };
-
-        let credentials = if windows {
+        let credentials = if platform.starts_with("win32") {
             Capability::unavailable(not_implemented("windows credential store binding"))
         }
         else {
@@ -127,8 +120,12 @@ impl Capabilities {
             None => CapabilityReason::NotImplemented { scope: format!("{protocol} backend") },
         };
 
-        Err(PlatformError { capability: format!("protocol:{protocol}"), reason })
+        Err(PlatformError::Unavailable { capability: format!("protocol:{protocol}"), reason })
     }
+}
+
+fn supports_gui(platform: &str) -> bool {
+    ["win32", "darwin", "linux"].iter().any(|prefix| platform.starts_with(prefix))
 }
 
 fn not_implemented(scope: &str) -> CapabilityReason {
@@ -136,10 +133,12 @@ fn not_implemented(scope: &str) -> CapabilityReason {
 }
 
 fn unsupported_platform(platform: &str) -> CapabilityReason {
-    CapabilityReason::UnsupportedPlatform { platform: platform.to_owned() }
+    CapabilityReason::UnsupportedPlatform { platform: platform.to_owned(), detail: None }
 }
 
-fn platform_tag() -> String {
+/// Platform tag in npm form, for example `win32-x64`.
+#[must_use]
+pub fn platform_tag() -> String {
     let os = match std::env::consts::OS {
         "windows" => "win32",
         "macos" => "darwin",
@@ -184,19 +183,33 @@ mod tests {
         let capabilities = Capabilities::for_platform("win32-x64");
         let error = capabilities.require(Protocol::Rdp).expect_err("rdp must not be usable yet");
 
-        assert_eq!(error.reason.code(), "not_implemented");
-        assert_eq!(error.capability, "protocol:rdp");
+        assert_eq!(error.capability(), "protocol:rdp");
+        assert_eq!(error.reason().map(CapabilityReason::code), Some("not_implemented"));
         assert_eq!(capabilities.protocol(Protocol::Rdp).map(|entry| entry.protocol), Some(Protocol::Rdp));
     }
 
     #[test]
-    fn non_windows_hosts_report_platform_unsupported() {
-        let capabilities = Capabilities::for_platform("linux-x64");
+    fn gui_is_available_on_desktop_platforms() {
+        for platform in ["win32-x64", "darwin-arm64", "linux-x64"] {
+            let capabilities = Capabilities::for_platform(platform);
+            assert!(capabilities.gui.is_available(), "gui must be available on {platform}");
+            assert_eq!(capabilities.gui.reason, None);
+        }
+    }
 
+    #[test]
+    fn gui_reports_platform_unsupported_elsewhere() {
+        let capabilities = Capabilities::for_platform("freebsd-x64");
         let gui = capabilities.gui.reason.as_ref().expect("gui must carry a reason");
-        let credentials = capabilities.credentials.reason.as_ref().expect("credentials must carry a reason");
 
         assert_eq!(gui.code(), "unsupported_platform");
+    }
+
+    #[test]
+    fn credentials_depend_on_the_windows_store() {
+        let capabilities = Capabilities::for_platform("linux-x64");
+        let credentials = capabilities.credentials.reason.as_ref().expect("credentials must carry a reason");
+
         assert_eq!(credentials.code(), "unsupported_platform");
         assert!(!capabilities.supports(Protocol::Ssh));
     }
@@ -210,5 +223,6 @@ mod tests {
 
         assert_eq!(rdp["available"], false);
         assert_eq!(rdp["reason"]["code"], "not_implemented");
+        assert_eq!(json["gui"]["available"], true);
     }
 }

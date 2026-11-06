@@ -5,7 +5,7 @@ mod error;
 mod session;
 mod transport;
 
-pub use capabilities::{Capabilities, Capability, ProtocolCapability};
+pub use capabilities::{Capabilities, Capability, ProtocolCapability, platform_tag};
 pub use error::{CapabilityReason, PlatformError};
 pub use session::{AuthKind, AuthRef, Protocol, SessionMetadata, SessionProfile};
 pub use transport::SessionTransport;
