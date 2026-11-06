@@ -10,6 +10,9 @@ exclude = [
 
 [workspace.dependencies]
 
+[workspace.package]
+license = "MPL-2.0"
+
 [profile.release]
 lto = true
 panic = "abort"
