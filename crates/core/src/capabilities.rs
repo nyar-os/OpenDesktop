@@ -125,7 +125,9 @@ impl Capabilities {
 }
 
 fn supports_gui(platform: &str) -> bool {
-    ["win32", "darwin", "linux"].iter().any(|prefix| platform.starts_with(prefix))
+    // The GUI host ships as the win32-x64 native package only. Reporting it as
+    // available elsewhere would promise a window that no artifact can open.
+    platform.starts_with("win32")
 }
 
 fn not_implemented(scope: &str) -> CapabilityReason {
@@ -189,11 +191,14 @@ mod tests {
     }
 
     #[test]
-    fn gui_is_available_on_desktop_platforms() {
-        for platform in ["win32-x64", "darwin-arm64", "linux-x64"] {
+    fn gui_is_available_only_where_the_host_build_ships() {
+        assert!(Capabilities::for_platform("win32-x64").gui.is_available());
+
+        for platform in ["darwin-arm64", "linux-x64"] {
             let capabilities = Capabilities::for_platform(platform);
-            assert!(capabilities.gui.is_available(), "gui must be available on {platform}");
-            assert_eq!(capabilities.gui.reason, None);
+            let gui = capabilities.gui.reason.as_ref().expect("gui must carry a reason");
+
+            assert_eq!(gui.code(), "unsupported_platform", "gui must not claim availability on {platform}");
         }
     }
 
