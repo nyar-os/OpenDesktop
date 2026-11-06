@@ -2,16 +2,11 @@
 name = "sub_projects"
 publish = false
 version = "0.0.0"
-authors = ["Aster <192607617@qq.com>"]
-description = "..."
-categories = ["rust-patterns"]
-homepage = "https://github.com/oovm/RustTemplate"
-repository = "https://github.com/oovm/RustTemplate"
-documentation = "https://docs.rs/sub_projects"
-readme = "readme.md"
+description = "Legacy placeholder crate kept until the old layout is removed"
 license = "MPL-2.0"
 edition = "2021"
-exclude = ["package.json", "tests/**"]
+readme = "readme.md"
+exclude = ["tests/**"]
 
 [dependencies]
 
@@ -19,6 +14,3 @@ exclude = ["package.json", "tests/**"]
 
 [features]
 default = []
-
-[package.metadata.docs.rs]
-all-features = true

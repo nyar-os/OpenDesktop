@@ -4,9 +4,6 @@ members = ["projects/*"]
 default-members = [
     "projects/sub_projects",
 ]
-exclude = [
-    "projects/.DS_Store",
-]
 
 [workspace.dependencies]
 

@@ -1,5 +1,5 @@
 ## Tests
 
 ```bash
-wee test
+cargo test --workspace
 ```

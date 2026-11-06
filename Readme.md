@@ -1,31 +1,34 @@
-Rust Template Project
-=====================
+# Open Desktop
 
-Rust template project for monorepo
+Remote session manager for the Open family. SSH sessions are first-class, so machines without a graphical desktop are managed the same way as desktop ones.
 
-## Change the initial commit
+## Status
 
-```shell
-git commit --amend --message "🎂 Project initialized!" --date "2012-12-12"
+The repository is being migrated from its template scaffold to the shared Open application layout. Nothing here is shipped yet: the Rust workspace, npm packages, CLI and GUI land in later steps.
+
+## Scope
+
+- Session types: SSH first. RDP and VNC entries stay reserved and report an explicit unavailable state until their own backends are delivered.
+- Platform: `win32-x64` first. Other platforms stay unsupported until a matching platform package exists.
+- Credentials: stored through the operating system facility. There is no plaintext fallback.
+
+## Target layout
+
+- `crates/core`: session model, capability reporting, platform traits.
+- `crates/napi`: Node-API surface.
+- `packages/open-desktop`: npm meta package with native loader and CLI.
+- `packages/open-desktop-ui`: VMZ static UI hosted in WebView2.
+- `packages/open-desktop-win32-x64`: native platform package.
+
+## Build
+
+```bash
+cargo check --workspace
+cargo test --workspace
+pnpm install
+pnpm run build
 ```
 
-## Emoji Comment
+## License
 
-| Emoji  | Meaning                      |  
-|--------|------------------------------|  
-| 🎂     | Project initialized!         |  
-| 🎉     | Release new version          |  
-| 🧪🔮   | Experimental code            |   
-| 🔧🐛🐞 | Bug fix                      |  
-| 🔒     | Security fix                 |  
-| 🐣🐤🐥 | Add feature                  |  
-| 📝🎀   | Documentation                |  
-| 🚀     | Performance improve!         |  
-| 🚧     | Work in progress             |  
-| 🚨     | Test coverage improve!       |  
-| 🚥     | CI improve!                  |  
-| 🔥🧨   | Remove code or files         |
-| 🧹     | Code refactor                |
-| 📈     | Add analytics or branch code |
-| 🤖     | Automation fix               |
-| 📦     | Update dependencies          |
+Mozilla Public License 2.0. See [License.md](./License.md).
