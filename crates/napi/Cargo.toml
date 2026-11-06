@@ -1,0 +1,16 @@
+[package]
+name = "open-desktop-napi"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+description = "Node-API bindings for open-desktop"
+publish = false
+
+[lib]
+crate-type = ["cdylib"]
+name = "open_desktop_napi"
+
+[dependencies]
+open-desktop-core = { workspace = true }

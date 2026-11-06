@@ -1,14 +1,24 @@
 [workspace]
 resolver = "2"
-members = ["projects/*"]
-default-members = [
-    "projects/sub_projects",
+members = [
+    "crates/core",
+    "crates/napi",
 ]
-
-[workspace.dependencies]
+default-members = [
+    "crates/core",
+    "crates/napi",
+]
+exclude = ["projects"]
 
 [workspace.package]
+version = "0.0.0"
+edition = "2024"
 license = "MPL-2.0"
+authors = ["WAE Team <team@wae.dev>"]
+repository = "https://github.com/nyar-os/OpenDesktop"
+
+[workspace.dependencies]
+open-desktop-core = { path = "crates/core", version = "0.0.0" }
 
 [profile.release]
 lto = true
