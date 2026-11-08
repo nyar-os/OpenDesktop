@@ -1,12 +1,14 @@
 //! Session model and capability reporting for `@wae/open-desktop`.
 
+mod audit;
 mod capabilities;
 mod error;
 mod session;
 mod transport;
 
+pub use audit::{AuditMode, Operation};
 pub use capabilities::{Capabilities, Capability, ProtocolCapability, platform_tag};
-pub use error::{CapabilityReason, PlatformError};
+pub use error::{CapabilityReason, PlatformError, Result};
 pub use session::{AuthKind, AuthRef, Protocol, SessionMetadata, SessionProfile};
 pub use transport::SessionTransport;
 

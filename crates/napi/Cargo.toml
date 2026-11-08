@@ -14,4 +14,6 @@ name = "open_desktop_napi"
 
 [dependencies]
 open-desktop-core = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
 wae = { workspace = true }

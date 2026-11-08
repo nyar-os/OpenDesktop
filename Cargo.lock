@@ -264,6 +264,8 @@ name = "open-desktop-napi"
 version = "0.0.0"
 dependencies = [
  "open-desktop-core",
+ "serde",
+ "serde_json",
  "wae",
 ]
 

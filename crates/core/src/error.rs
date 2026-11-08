@@ -89,4 +89,16 @@ impl PlatformError {
             Self::Failed { .. } => None,
         }
     }
+
+    /// Stable machine-readable code, safe for audit records and CLI exits.
+    #[must_use]
+    pub fn code(&self) -> &'static str {
+        match self {
+            Self::Unavailable { reason, .. } => reason.code(),
+            Self::Failed { .. } => "failed",
+        }
+    }
 }
+
+/// Result of an operation that can refuse through a capability.
+pub type Result<T> = std::result::Result<T, PlatformError>;
