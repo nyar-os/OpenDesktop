@@ -1,0 +1,32 @@
+name: check-typescript
+
+on:
+  push:
+    branches: [dev]
+  pull_request:
+
+jobs:
+  check-typescript:
+    # Windows is the only native target today, so the CLI smoke test can load
+    # the staged addon. Add an OS matrix when a second platform package exists.
+    runs-on: windows-latest
+    env:
+      CARGO_BUILD_JOBS: "4"
+    steps:
+      - uses: actions/checkout@v5
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.28.0
+      - uses: actions-rust-lang/setup-rust-toolchain@v1
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "24"
+          cache: pnpm
+      - name: Install
+        run: pnpm install --frozen-lockfile
+      - name: Build
+        run: pnpm run build
+      - name: Check agent skills
+        run: pnpm run check:skills
+      - name: CLI smoke
+        run: node packages/open-desktop/dist/cli.js capabilities --json
