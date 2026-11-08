@@ -1,0 +1,486 @@
+<template>
+    <div class="od-root">
+        <header class="od-header">
+            <div class="od-brand">
+                <span class="od-mark">OD</span>
+                <div class="od-brand-text">
+                    <h1>{{ title }}</h1>
+                    <p>{{ subtitle }}</p>
+                </div>
+            </div>
+            <div class="od-header-actions">
+                <button class="od-button od-button-secondary" type="button" @click="closeWindow">{{ closeLabel }}</button>
+                <button class="od-button od-button-primary" type="button" :disabled="loading" @click="refresh">
+                    {{ loading ? refreshBusyLabel : refreshLabel }}
+                </button>
+            </div>
+        </header>
+
+        <main class="od-main">
+            <section class="od-summary">
+                <div class="od-summary-item">
+                    <span class="od-summary-label">{{ platformLabel }}</span>
+                    <strong class="od-summary-value" data-state="available">{{ platform || '—' }}</strong>
+                </div>
+                <div class="od-summary-item">
+                    <span class="od-summary-label">{{ loadedLabel }}</span>
+                    <strong class="od-summary-value">{{ loadedAt || '—' }}</strong>
+                </div>
+                <div class="od-summary-item od-summary-wide">
+                    <span class="od-summary-label">{{ noticeLabel }}</span>
+                    <strong class="od-summary-value">{{ notice }}</strong>
+                </div>
+            </section>
+
+            <section v-if="error" class="od-state od-state-error" role="alert">
+                <h2>{{ errorTitle }}</h2>
+                <p>{{ error }}</p>
+                <button class="od-button od-button-secondary" type="button" @click="refresh">{{ retryLabel }}</button>
+            </section>
+
+            <section v-else-if="loading" class="od-state" role="status">
+                <h2>{{ loadingTitle }}</h2>
+                <p>{{ loadingDesc }}</p>
+            </section>
+
+            <section v-else-if="!rows.length" class="od-state">
+                <h2>{{ emptyTitle }}</h2>
+                <p>{{ emptyDesc }}</p>
+                <button class="od-button od-button-secondary" type="button" @click="refresh">{{ refreshLabel }}</button>
+            </section>
+
+            <section v-else class="od-panel" :aria-label="tableLabel">
+                <table class="od-table">
+                    <thead>
+                        <tr>
+                            <th scope="col">{{ columnCapability }}</th>
+                            <th scope="col">{{ columnState }}</th>
+                            <th scope="col">{{ columnDetail }}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="row in rows" :key="row.id">
+                            <td class="od-cell-name">{{ row.name }}</td>
+                            <td>
+                                <span class="od-state-pill" :data-state="row.state">{{ row.state }}</span>
+                            </td>
+                            <td class="od-cell-detail">{{ row.detail }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+        </main>
+
+        <footer class="od-footer">
+            <span>{{ footerHint }}</span>
+            <span class="od-footer-code">wae.audit/v0</span>
+        </footer>
+    </div>
+</template>
+
+<style>
+.od-root {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background:
+        radial-gradient(120% 80% at 0% 0%, color-mix(in srgb, var(--vmz-brand-primary, #2563eb) 8%, transparent), transparent 60%),
+        var(--vmz-surface-page, #f5f6f8);
+    color: var(--vmz-text-ink, #1f2329);
+    font-family: var(--vmz-font-sans, system-ui, sans-serif);
+}
+
+.od-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--vmz-space-5, 1.5rem);
+    padding: var(--vmz-space-4, 1rem) clamp(1rem, 3vw, 2rem);
+    background: color-mix(in srgb, var(--vmz-surface-paper, #ffffff) 88%, transparent);
+    border-bottom: 1px solid var(--vmz-line-default, #e5e6eb);
+    backdrop-filter: blur(10px);
+}
+
+.od-brand {
+    display: flex;
+    align-items: center;
+    gap: var(--vmz-space-3, 0.75rem);
+}
+
+.od-mark {
+    display: grid;
+    place-items: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: var(--vmz-radius-md, 6px);
+    background: var(--vmz-brand-primary, #2563eb);
+    color: var(--vmz-text-on-brand, #ffffff);
+    font-weight: var(--vmz-type-weight-semibold, 600);
+    letter-spacing: 0.04em;
+}
+
+.od-brand-text h1 {
+    margin: 0;
+    font-size: var(--vmz-type-title, 1.5rem);
+    line-height: var(--vmz-type-line-height-title, 1.32);
+    font-weight: var(--vmz-type-weight-semibold, 600);
+}
+
+.od-brand-text p {
+    margin: 0.125rem 0 0;
+    color: var(--vmz-text-tertiary, #646a73);
+    font-size: var(--vmz-type-caption, 0.8125rem);
+}
+
+.od-header-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--vmz-space-2, 0.5rem);
+}
+
+.od-button {
+    height: var(--vmz-control-height, 2rem);
+    padding: 0 var(--vmz-density-control-padding-x, 0.75rem);
+    border-radius: var(--vmz-radius-md, 6px);
+    border: 1px solid transparent;
+    font-size: var(--vmz-type-caption, 0.8125rem);
+    font-weight: var(--vmz-type-weight-medium, 500);
+    cursor: pointer;
+    transition: background var(--vmz-motion-control-duration, 120ms) var(--vmz-motion-control-easing, ease);
+}
+
+.od-button-primary {
+    background: var(--vmz-action-primary-background, #2563eb);
+    color: var(--vmz-action-primary-foreground, #ffffff);
+}
+
+.od-button-primary:hover {
+    background: var(--vmz-action-primary-hover, #3b82f6);
+}
+
+.od-button-primary:disabled {
+    opacity: 0.6;
+    cursor: progress;
+}
+
+.od-button-secondary {
+    background: var(--vmz-action-secondary-background, #ffffff);
+    color: var(--vmz-action-secondary-foreground, #1f2329);
+    border-color: var(--vmz-action-secondary-border, #e5e6eb);
+}
+
+.od-button-secondary:hover {
+    background: var(--vmz-action-secondary-hover, #f7f8fa);
+}
+
+.od-main {
+    flex: 1;
+    width: min(100%, var(--vmz-layout-max-width, 75rem));
+    margin: 0 auto;
+    padding: var(--vmz-layout-gutter, 1.5rem);
+    display: flex;
+    flex-direction: column;
+    gap: var(--vmz-space-5, 1.5rem);
+}
+
+.od-summary {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+    gap: var(--vmz-space-3, 0.75rem);
+    padding: var(--vmz-space-4, 1rem);
+    background: var(--vmz-surface-paper, #ffffff);
+    border: 1px solid var(--vmz-line-default, #e5e6eb);
+    border-radius: var(--vmz-radius-lg, 8px);
+}
+
+.od-summary-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.od-summary-wide {
+    grid-column: span 1;
+}
+
+.od-summary-label {
+    color: var(--vmz-text-tertiary, #646a73);
+    font-size: var(--vmz-type-caption, 0.8125rem);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+
+.od-summary-value {
+    font-size: var(--vmz-type-body, 1rem);
+    font-weight: var(--vmz-type-weight-medium, 500);
+    overflow-wrap: anywhere;
+}
+
+.od-state {
+    padding: var(--vmz-space-6, 2rem);
+    background: var(--vmz-surface-paper, #ffffff);
+    border: 1px dashed var(--vmz-line-strong, #c9cdd4);
+    border-radius: var(--vmz-radius-lg, 8px);
+    text-align: center;
+}
+
+.od-state h2 {
+    margin: 0 0 var(--vmz-space-2, 0.5rem);
+    font-size: var(--vmz-type-subtitle, 1.125rem);
+}
+
+.od-state p {
+    margin: 0;
+    color: var(--vmz-text-tertiary, #646a73);
+}
+
+.od-state-error {
+    border-style: solid;
+    border-color: var(--vmz-status-danger-border, #ffa39e);
+    background: var(--vmz-status-danger-background, #fff1f0);
+    text-align: left;
+}
+
+.od-state-error h2 {
+    color: var(--vmz-status-danger-foreground, #a8071a);
+}
+
+.od-state-error .od-button {
+    margin-top: var(--vmz-space-3, 0.75rem);
+}
+
+.od-panel {
+    background: var(--vmz-surface-paper, #ffffff);
+    border: 1px solid var(--vmz-line-default, #e5e6eb);
+    border-radius: var(--vmz-radius-lg, 8px);
+    overflow: hidden;
+}
+
+.od-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--vmz-type-body, 1rem);
+}
+
+.od-table thead th {
+    text-align: left;
+    padding: var(--vmz-space-3, 0.75rem) var(--vmz-space-4, 1rem);
+    background: var(--vmz-surface-mist, #f7f8fa);
+    color: var(--vmz-text-tertiary, #646a73);
+    font-size: var(--vmz-type-caption, 0.8125rem);
+    font-weight: var(--vmz-type-weight-medium, 500);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    border-bottom: 1px solid var(--vmz-line-default, #e5e6eb);
+}
+
+.od-table td {
+    padding: var(--vmz-space-3, 0.75rem) var(--vmz-space-4, 1rem);
+    border-bottom: 1px solid var(--vmz-line-subtle, #f0f1f3);
+    vertical-align: top;
+}
+
+.od-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.od-cell-name {
+    font-family: var(--vmz-font-mono, ui-monospace, monospace);
+    font-size: var(--vmz-type-code, 0.875rem);
+    white-space: nowrap;
+}
+
+.od-cell-detail {
+    color: var(--vmz-text-steel, #51565d);
+    font-size: var(--vmz-type-caption, 0.8125rem);
+    line-height: var(--vmz-type-line-height-caption, 1.55);
+}
+
+.od-state-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.125rem var(--vmz-space-2, 0.5rem);
+    border-radius: var(--vmz-radius-pill, 999px);
+    background: var(--vmz-status-info-background, #eff6ff);
+    color: var(--vmz-status-info-foreground, #1d4ed8);
+    font-family: var(--vmz-font-mono, ui-monospace, monospace);
+    font-size: var(--vmz-type-caption, 0.8125rem);
+    white-space: nowrap;
+}
+
+.od-state-pill[data-state="available"] {
+    background: var(--vmz-status-success-background, #f6ffed);
+    color: var(--vmz-status-success-foreground, #237804);
+}
+
+.od-state-pill[data-state="dependency_blocked"],
+.od-state-pill[data-state="unsupported_platform"] {
+    background: var(--vmz-status-warning-background, #fffbe6);
+    color: var(--vmz-status-warning-foreground, #874d00);
+}
+
+.od-state-pill[data-state="not_implemented"],
+.od-state-pill[data-state="unavailable"] {
+    background: var(--vmz-status-danger-background, #fff1f0);
+    color: var(--vmz-status-danger-foreground, #a8071a);
+}
+
+.od-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--vmz-space-3, 0.75rem);
+    padding: var(--vmz-space-3, 0.75rem) clamp(1rem, 3vw, 2rem);
+    border-top: 1px solid var(--vmz-line-default, #e5e6eb);
+    color: var(--vmz-text-tertiary, #646a73);
+    font-size: var(--vmz-type-caption, 0.8125rem);
+}
+
+.od-footer-code {
+    font-family: var(--vmz-font-mono, ui-monospace, monospace);
+}
+</style>
+
+<script client>
+/**
+ * Capability view for the host window.
+ *
+ * The page renders only the snapshot returned by the native IPC handler
+ * (`{ type: "capabilities" }` → `{ type: "capabilitiesResult", report }`).
+ * There is no mock data and no second capability model in the UI.
+ */
+export default class CapabilitiesPage {
+    title = "OpenDesktop";
+    subtitle = "Capability snapshot reported by the native capability face";
+    notice = "Protocol backends stay unavailable until their contracts are implemented. Availability is reported, never inferred.";
+    noticeLabel = "Notice";
+    platformLabel = "Platform";
+    loadedLabel = "Last refreshed";
+    tableLabel = "Capability availability";
+    columnCapability = "Capability";
+    columnState = "State";
+    columnDetail = "Detail";
+    closeLabel = "Close";
+    refreshLabel = "Refresh";
+    refreshBusyLabel = "Refreshing";
+    retryLabel = "Try again";
+    loadingTitle = "Reading capabilities";
+    loadingDesc = "Waiting for the native capability snapshot.";
+    errorTitle = "Capability snapshot unavailable";
+    emptyTitle = "No capability rows";
+    emptyDesc = "The native layer returned an empty report.";
+    footerHint = "Session, transport, and credential backends are not part of this build.";
+
+    platform = "";
+    rows = [];
+    loading = true;
+    error = "";
+    loadedAt = "";
+
+    onMount() {
+        this.installHostBridge();
+        const bridge = globalThis.chrome && globalThis.chrome.webview;
+        if (bridge && bridge.postMessage) {
+            this.refresh();
+            return;
+        }
+        this.loading = false;
+        this.error = "Native bridge unavailable. Open this page through the OpenDesktop host.";
+    }
+
+    installHostBridge() {
+        const handler = (event) => {
+            let data = event && typeof event === "object" && "data" in event ? event.data : event;
+            if (typeof data === "string") {
+                try {
+                    data = JSON.parse(data);
+                } catch {
+                    return;
+                }
+            }
+            this.handleReply(data);
+        };
+        const bridge = globalThis.chrome && globalThis.chrome.webview;
+        if (bridge && bridge.addEventListener) bridge.addEventListener("message", handler);
+        globalThis.__waeReceive = (text) => {
+            try {
+                handler(JSON.parse(text));
+            } catch {
+                // Ignore malformed host messages.
+            }
+        };
+    }
+
+    post(message) {
+        const payload = JSON.stringify(message);
+        const win = globalThis.chrome && globalThis.chrome.webview;
+        if (win && win.postMessage) {
+            win.postMessage(payload);
+            return true;
+        }
+        return false;
+    }
+
+    refresh() {
+        this.loading = true;
+        this.error = "";
+        if (!this.post({ type: "capabilities" })) {
+            this.loading = false;
+            this.error = "Native bridge unavailable. Open this page through the OpenDesktop host.";
+        }
+    }
+
+    closeWindow() {
+        this.post({ type: "close" });
+    }
+
+    handleReply(data) {
+        if (!data || typeof data !== "object" || data.type !== "capabilitiesResult") return;
+        this.loading = false;
+
+        if (data.error) {
+            const failure = data.error;
+            const code = typeof failure.code === "string" ? failure.code : "unavailable";
+            const message = typeof failure.message === "string" ? failure.message : String(failure);
+            this.error = `${code}: ${message}`;
+            this.rows = [];
+            return;
+        }
+
+        const report = data.report || {};
+        this.platform = String(report.platform || "");
+        this.rows = [
+            this.describe("gui", report.gui),
+            ...(Array.isArray(report.protocols) ? report.protocols.map((entry) => this.describe(`protocol ${entry.protocol}`, entry)) : []),
+            this.describe("credentials", report.credentials),
+        ];
+        this.loadedAt = new Date().toLocaleTimeString();
+        this.error = "";
+    }
+
+    describe(name, capability) {
+        const item = capability || {};
+        const reason = item.reason || undefined;
+        return {
+            id: name,
+            name,
+            state: item.available === true ? "available" : String((reason && reason.code) || "unavailable"),
+            detail: item.available === true ? "Reported available by the native capability snapshot." : this.reasonText(reason),
+        };
+    }
+
+    reasonText(reason) {
+        if (!reason) return "Unavailable with no structured reason.";
+        if (reason.code === "unsupported_platform") {
+            return `Unsupported on ${reason.platform || "this platform"}${reason.detail ? `: ${reason.detail}` : "."}`;
+        }
+        if (reason.code === "dependency_blocked") {
+            return `Blocked on ${reason.dependency || "an external dependency"}${reason.detail ? `: ${reason.detail}` : "."}`;
+        }
+        if (reason.code === "not_implemented") {
+            return `${reason.scope || "This backend"} is not implemented yet.`;
+        }
+        return String(reason.code);
+    }
+}
+</script>

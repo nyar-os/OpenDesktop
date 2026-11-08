@@ -1,0 +1,36 @@
+{
+    "name": "@wae/open-desktop",
+    "version": "0.0.0",
+    "description": "OpenDesktop meta package, typed library, and agent CLI",
+    "license": "Apache-2.0",
+    "type": "module",
+    "engines": {
+        "node": ">=22"
+    },
+    "bin": {
+        "open-desktop": "./dist/cli.js"
+    },
+    "main": "./dist/index.js",
+    "types": "./dist/index.d.ts",
+    "exports": {
+        ".": {
+            "types": "./dist/index.d.ts",
+            "import": "./dist/index.js"
+        }
+    },
+    "files": ["dist", "locales", "README.md", "License.md"],
+    "scripts": {
+        "build": "tsc -p tsconfig.json"
+    },
+    "dependencies": {
+        "@wae/commander": "0.0.5"
+    },
+    "optionalDependencies": {
+        "@wae/open-desktop-win32-x64": "workspace:*"
+    },
+    "repository": "https://github.com/nyar-os/OpenDesktop",
+    "devDependencies": {
+        "@types/node": "^22.20.4",
+        "typescript": "^5.9.2"
+    }
+}

@@ -1,0 +1,17 @@
+{
+    "entries": [
+        { "key": { "path": ["action", "primary", "background"] }, "value": "#2563EB" },
+        { "key": { "path": ["action", "primary", "foreground"] }, "value": "#FFFFFF" },
+        { "key": { "path": ["action", "primary", "hover"] }, "value": "#3B82F6" },
+        { "key": { "path": ["action", "primary", "active"] }, "value": "#1D4ED8" },
+        { "key": { "path": ["action", "primary", "soft"] }, "value": "#EFF6FF" },
+        { "key": { "path": ["action", "secondary", "background"] }, "value": "#FFFFFF" },
+        { "key": { "path": ["action", "secondary", "foreground"] }, "value": "#1F2329" },
+        { "key": { "path": ["action", "secondary", "border"] }, "value": "#E5E6EB" },
+        { "key": { "path": ["action", "secondary", "hover"] }, "value": "#F7F8FA" },
+        { "key": { "path": ["action", "secondary", "active"] }, "value": "#F0F1F3" },
+        { "key": { "path": ["action", "link", "foreground"] }, "value": "#1D4ED8" },
+        { "key": { "path": ["action", "link", "hover"] }, "value": "#2563EB" },
+        { "key": { "path": ["focus", "ring"] }, "value": "color-mix(in srgb, #2563EB 24%, transparent)" }
+    ]
+}

@@ -1,0 +1,24 @@
+{
+    "cli": {
+        "intro": "open-desktop — 受能力门禁约束的桌面连接界面，提供面向 agent 与人类的非交互 CLI。",
+        "cmd": {
+            "capabilities": "报告领域能力及可用状态",
+            "version": "打印原生插件版本",
+            "audit": "读取当前 actor 的审计记录",
+            "gui": "打开 VMZ 图形窗口并泵送宿主事件直到关闭"
+        },
+        "opt": {
+            "actor": "审计 actor 标识（用户或 agent 名称）",
+            "actor-kind": "审计 actor 类型",
+            "actor-source": "审计 actor 来源（cli、skill、plugin、gui 等）",
+            "json": "在标准输出打印机器可读 JSON",
+            "content-dir": "暂存 GUI 构建产物的目录",
+            "kind": "按审计 actor 类型过滤",
+            "id": "按审计 actor 标识过滤",
+            "capability": "按能力 id 过滤审计记录",
+            "from-ms": "审计记录起始 Unix 毫秒时间戳",
+            "to-ms": "审计记录截止 Unix 毫秒时间戳",
+            "limit": "审计记录的最大条数"
+        }
+    }
+}

@@ -1,0 +1,9 @@
+{
+    "name": "@wae/open-desktop-skills",
+    "version": "0.0.0",
+    "description": "Agent skills for @wae/open-desktop",
+    "license": "Apache-2.0",
+    "type": "module",
+    "files": ["skills", "License.md"],
+    "repository": "https://github.com/nyar-os/OpenDesktop"
+}

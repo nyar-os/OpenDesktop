@@ -71,16 +71,35 @@ function commandTree(): Set<string> {
 }
 
 const flagCache = new Map<string, Set<string>>();
+
+function optionSection(command: string | null): string[] {
+    const args = command ? [command, '--help'] : ['--help'];
+    const lines = runCli(args).split(/\r?\n/);
+    const start = lines.findIndex((line) => line.trim() === 'Options:');
+    if (start < 0) fail(`could not find the \`Options:\` section in \`open-desktop ${command ? `${command} ` : ''}--help\``);
+    const collected: string[] = [];
+    for (let index = start + 1; index < lines.length; index += 1) {
+        const line = lines[index];
+        if (!line.trim()) break;
+        collected.push(line);
+    }
+    return collected;
+}
+
+function rootFlags(): Set<string> {
+    const flags = new Set<string>();
+    for (const line of optionSection(null)) {
+        const match = line.match(/^\s+(--[a-z0-9-]+)/);
+        if (match) flags.add(match[1]);
+    }
+    return flags;
+}
+
 function flagsFor(command: string): Set<string> {
     const cached = flagCache.get(command);
     if (cached) return cached;
-    const lines = runCli([command, '--help']).split(/\r?\n/);
-    const start = lines.findIndex((line) => line.trim() === 'Options:');
-    if (start < 0) fail(`could not find the \`Options:\` section in \`open-desktop ${command} --help\``);
-    const flags = new Set<string>(['--help']);
-    for (let index = start + 1; index < lines.length; index += 1) {
-        const line = lines[index];
-        if (!line.trim() || /^\s{2,}[a-z][a-z0-9-]*\s{2,}/.test(line)) break;
+    const flags = new Set<string>(['--help', ...rootFlags()]);
+    for (const line of optionSection(command)) {
         const match = line.match(/^\s+(--[a-z0-9-]+)/);
         if (match) flags.add(match[1]);
     }
