@@ -1,32 +1,40 @@
 #!/usr/bin/env node
-/** Build the Node-API cdylib and stage it into the platform package. */
+/**
+ * Build the Rust cdylib, then stage it through `stage-native.ts`.
+ *
+ * The target table and artifact lookup live in `stage-native.ts` and are
+ * imported here, so the build and staging entry points share one implementation
+ * and do not form an import cycle.
+ */
 import { spawnSync } from 'node:child_process';
-import fs from 'node:fs';
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
-import { findCdylib } from './find-cdylib.ts';
+import { pathToFileURL } from 'node:url';
 
-const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const crateName = 'open-desktop-napi';
-const cdylibName = 'open_desktop_napi';
+import { projectRoot, resolveTarget, stageNative, type NativeTarget } from './stage-native.ts';
 
-const build = spawnSync('cargo', ['build', '-p', crateName, '--release'], {
-    cwd: root,
-    stdio: 'inherit',
-    shell: false,
-});
-if ((build.status ?? 1) !== 0) {
-    process.exit(build.status ?? 1);
+export async function buildNapi(root: string = projectRoot()): Promise<string> {
+    const target: NativeTarget = resolveTarget();
+    const result = spawnSync(process.env.CARGO ?? 'cargo', ['build', '-p', 'open-desktop-napi', '--release'], {
+        cwd: root,
+        stdio: 'inherit',
+        env: {
+            ...process.env,
+            CARGO_BUILD_JOBS: process.env.CARGO_BUILD_JOBS ?? '2',
+        },
+    });
+    if (result.status !== 0) {
+        throw new Error(`cargo build failed with exit code ${result.status ?? 'unknown'}`);
+    }
+    return stageNative(root, target);
 }
 
-const artifact = findCdylib(path.join(root, 'target', 'release'), cdylibName);
-if (!artifact) {
-    console.error(`native artifact not found for ${crateName} under target/release`);
-    process.exit(1);
+const entry = process.argv[1] ? pathToFileURL(process.argv[1]).href : '';
+if (import.meta.url === entry) {
+    try {
+        const dest = await buildNapi();
+        console.log(`built and staged native addon -> ${dest}`);
+    }
+    catch (error) {
+        console.error(`build-napi failed: ${error instanceof Error ? error.message : error}`);
+        process.exit(1);
+    }
 }
-
-const destDir = path.join(root, 'packages', 'open-desktop-win32-x64');
-fs.mkdirSync(destDir, { recursive: true });
-const dest = path.join(destDir, 'open-desktop.win32-x64.node');
-fs.copyFileSync(artifact, dest);
-console.log(`staged ${artifact} -> ${dest}`);
