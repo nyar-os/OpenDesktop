@@ -21,8 +21,8 @@ importers:
   packages/open-desktop:
     dependencies:
       '@wae/commander':
-        specifier: 0.0.5
-        version: 0.0.5
+        specifier: 0.0.6
+        version: 0.0.6
     devDependencies:
       '@types/node':
         specifier: ^22.20.4
@@ -170,8 +170,8 @@ packages:
       typescript:
         optional: true
 
-  '@wae/commander@0.0.5':
-    resolution: {integrity: sha512-L+xcfQZYbXvAmrBC52zSIZZqVokUkgLXeHxp6UWwXsJItQ/SH7oOgd6fMHrnKOHiB1h79wiAXtDX2dHW9KksUw==}
+  '@wae/commander@0.0.6':
+    resolution: {integrity: sha512-jRTwhX6iHPPQuchs4+BIfbrEjulGNV8w837jhwr+uxPTXOe+iWXw77OXz285jyEaLKZEGEq8FArJBW/YJWzFGA==}
     engines: {node: '>=20'}
 
   boolbase@2.0.0:
@@ -361,7 +361,7 @@ snapshots:
     transitivePeerDependencies:
       - canvas
 
-  '@wae/commander@0.0.5': {}
+  '@wae/commander@0.0.6': {}
 
   boolbase@2.0.0: {}
 
