@@ -37,7 +37,7 @@ availability from platform names or from this table.
 | `packages/open-desktop-skills` | `@wae/open-desktop-skills` agent skill |
 | `packages/open-desktop-ui` | `@wae/open-desktop-ui` VMZ static UI, staged into `packages/open-desktop/dist/gui` |
 | `packages/open-desktop-win32-x64` | `@wae/open-desktop-win32-x64` native addon |
-| `scripts` | Native build/staging, skills validation |
+| `scripts` | Skills validation (native build/staging via `wae native`, configured in `wae.config.ts`) |
 | `wae.config.ts` | Build, skills, release, CI, and audit configuration |
 
 ## CLI
@@ -67,7 +67,7 @@ node packages/open-desktop/dist/cli.js version --json
 node packages/open-desktop/dist/cli.js audit --json --limit 1
 ```
 
-`pnpm run build` runs `build:napi`, `build:ts`, and `build:ui`. The UI is a VMZ
+`pnpm run build` runs `build:napi` (`wae native build`), `build:ts`, and `build:ui`. The UI is a VMZ
 static delivery staged into the meta package, and it renders only the snapshot
 returned by the host IPC handler.
 
